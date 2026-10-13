@@ -7,6 +7,7 @@ body:
       value: |
         Informe a URL direta do arquivo. O destino padrao sera /dev_hdd0/packages/.
         Preencha o destino apenas se quiser salvar em outra pasta.
+        Se marcar o link como temporario, ele expirara 15 minutos apos o cadastro.
 
   - type: input
     id: url
@@ -25,3 +26,15 @@ body:
       placeholder: /dev_hdd0/PS3ISO/arquivo.iso
     validations:
       required: false
+
+  - type: dropdown
+    id: temporario
+    attributes:
+      label: Link temporario?
+      description: Links temporarios deixam de oferecer download 15 minutos apos o cadastro.
+      options:
+        - Nao
+        - Sim - expira em 15 minutos
+      default: 0
+    validations:
+      required: true
