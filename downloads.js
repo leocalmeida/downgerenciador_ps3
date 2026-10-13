@@ -12,16 +12,18 @@
   - tamanho: apenas informativo
   - url: link DIRETO do arquivo
   - destino: opcional. Se vazio, o webMAN salva em /dev_hdd0/packages/
+  - expiraEm: opcional. Timestamp ISO para links temporarios. Sem esse campo, o link e permanente.
 
   Regras importantes:
   - mantenha a extensao da URL e do destino coerentes quando o destino for informado;
   - evite caracteres como : * ? " < > | e \ no nome do arquivo de destino;
   - use virgula somente ENTRE os objetos do array; nao deixe virgula apos o ultimo item.
+  - para link temporario de 15 minutos, prefira o formulario automatico de issue.
 
   Para ISO, informe o caminho completo, por exemplo:
   /dev_hdd0/PS3ISO/Nome do Jogo.iso
 
-  MODELO:
+  MODELO PERMANENTE:
   {
     titulo: "Nome do arquivo",
     descricao: "Descricao curta do conteudo.",
@@ -30,6 +32,18 @@
     tamanho: "100 MB",
     url: "https://servidor.exemplo/arquivo.zip",
     destino: "/dev_hdd0/packages/arquivo.zip"
+  }
+
+  MODELO TEMPORARIO:
+  {
+    titulo: "Nome do arquivo",
+    descricao: "Descricao curta do conteudo.",
+    categoria: "Categoria",
+    tipo: "ZIP",
+    tamanho: "100 MB",
+    url: "https://servidor.exemplo/arquivo.zip",
+    destino: "/dev_hdd0/packages/arquivo.zip",
+    expiraEm: "2026-10-13T01:45:00Z"
   }
 */
 
