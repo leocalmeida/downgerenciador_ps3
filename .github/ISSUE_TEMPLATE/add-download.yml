@@ -1,0 +1,27 @@
+name: Adicionar download
+description: Adiciona uma URL automaticamente ao downloads.js
+title: "[DOWNLOAD] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Informe a URL direta do arquivo. O destino padrao sera /dev_hdd0/packages/.
+        Preencha o destino apenas se quiser salvar em outra pasta.
+
+  - type: input
+    id: url
+    attributes:
+      label: URL
+      description: Link direto do arquivo
+      placeholder: https://servidor.exemplo/arquivo.pkg
+    validations:
+      required: true
+
+  - type: input
+    id: destino
+    attributes:
+      label: Destino (opcional)
+      description: Deixe vazio para usar /dev_hdd0/packages/. Pode ser uma pasta ou caminho completo.
+      placeholder: /dev_hdd0/PS3ISO/arquivo.iso
+    validations:
+      required: false
