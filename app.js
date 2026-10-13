@@ -69,6 +69,82 @@
     return arquivo.substring(pos + 1).toLowerCase();
   }
 
+  function numero2(valor) {
+    return valor < 10 ? "0" + valor : String(valor);
+  }
+
+  function parseDataIso(valor) {
+    var texto = textoSeguro(valor);
+    var match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,3}))?(Z|([+-])(\d{2}):(\d{2}))$/.exec(texto);
+    var milissegundos;
+    var timestamp;
+    var deslocamento;
+
+    if (!match) {
+      return null;
+    }
+
+    milissegundos = match[7] || "0";
+    while (milissegundos.length < 3) {
+      milissegundos += "0";
+    }
+
+    timestamp = Date.UTC(
+      parseInt(match[1], 10),
+      parseInt(match[2], 10) - 1,
+      parseInt(match[3], 10),
+      parseInt(match[4], 10),
+      parseInt(match[5], 10),
+      parseInt(match[6], 10),
+      parseInt(milissegundos, 10)
+    );
+
+    if (match[8] !== "Z") {
+      deslocamento = (parseInt(match[10], 10) * 60) + parseInt(match[11], 10);
+      if (match[9] === "+") {
+        timestamp -= deslocamento * 60000;
+      } else {
+        timestamp += deslocamento * 60000;
+      }
+    }
+
+    return timestamp;
+  }
+
+  function formatarData(timestamp) {
+    var data = new Date(timestamp);
+
+    return numero2(data.getDate()) + "/" +
+      numero2(data.getMonth() + 1) + "/" +
+      data.getFullYear() + " " +
+      numero2(data.getHours()) + ":" +
+      numero2(data.getMinutes());
+  }
+
+  function obterExpiracao(item, agora) {
+    var texto;
+    var timestamp;
+
+    if (!item || typeof item !== "object" || !textoSeguro(item.expiraEm)) {
+      return {
+        temporario: false,
+        valido: true,
+        expirado: false,
+        timestamp: null
+      };
+    }
+
+    texto = textoSeguro(item.expiraEm);
+    timestamp = parseDataIso(texto);
+
+    return {
+      temporario: true,
+      valido: timestamp !== null,
+      expirado: timestamp !== null && agora >= timestamp,
+      timestamp: timestamp
+    };
+  }
+
   function validarItem(item) {
     var resultado = {
       erros: [],
@@ -97,6 +173,10 @@
 
     if (!textoSeguro(item.categoria)) {
       resultado.avisos.push("Categoria nao informada; o item sera exibido como Outros.");
+    }
+
+    if (textoSeguro(item.expiraEm) && parseDataIso(item.expiraEm) === null) {
+      resultado.erros.push("Data de expiracao invalida. Use formato ISO, por exemplo 2026-10-12T22:45:00-03:00 ou UTC com Z.");
     }
 
     if (textoSeguro(item.url) && textoSeguro(item.destino)) {
@@ -142,6 +222,24 @@
 
     html += '</div>';
     return html;
+  }
+
+  function renderizarExpiracao(expiracao) {
+    if (!expiracao.temporario) {
+      return "";
+    }
+
+    if (!expiracao.valido) {
+      return '<div class="expiration expired"><strong>Link temporario:</strong> data de expiracao invalida.</div>';
+    }
+
+    if (expiracao.expirado) {
+      return '<div class="expiration expired"><strong>Link expirado.</strong> Validade terminou em ' +
+        escapeHtml(formatarData(expiracao.timestamp)) + '.</div>';
+    }
+
+    return '<div class="expiration active"><strong>Link temporario.</strong> Valido ate ' +
+      escapeHtml(formatarData(expiracao.timestamp)) + '.</div>';
   }
 
   function categorias() {
@@ -214,14 +312,18 @@
     var status = document.getElementById("status");
     var busca = normalizar(document.getElementById("search").value);
     var categoria = document.getElementById("category").value;
+    var agora = new Date().getTime();
     var html = "";
     var total = 0;
     var invalidos = 0;
+    var expirados = 0;
     var i;
     var item;
     var itemValido;
     var destino;
     var validacao;
+    var expiracao;
+    var bloqueado;
 
     if (typeof PS3_DOWNLOADS === "undefined") {
       container.innerHTML = '<div class="empty">Nao foi possivel carregar downloads.js.</div>';
@@ -240,9 +342,15 @@
       itemValido = item && typeof item === "object" ? item : {};
       destino = itemValido.destino ? itemValido.destino : "/dev_hdd0/packages/";
       validacao = validarItem(item);
+      expiracao = obterExpiracao(itemValido, agora);
+      bloqueado = validacao.erros.length > 0 || expiracao.expirado;
 
       if (validacao.erros.length > 0) {
         invalidos++;
+      }
+
+      if (expiracao.expirado) {
+        expirados++;
       }
 
       html += '<div class="download-card">';
@@ -260,16 +368,21 @@
       }
 
       html += '<div class="destination">Destino: ' + escapeHtml(destino) + '</div>';
+      html += renderizarExpiracao(expiracao);
       html += renderizarValidacao(validacao);
 
-      if (validacao.erros.length === 0) {
+      if (!bloqueado) {
         html += '<a class="button" href="' + escapeHtml(montarUrlWebman(itemValido)) + '">Baixar no PS3</a>';
+      } else if (expiracao.expirado) {
+        html += '<span class="button disabled">Link expirado</span>';
       } else {
         html += '<span class="button disabled">Download bloqueado</span>';
       }
 
-      if (itemValido.url) {
+      if (itemValido.url && !expiracao.expirado) {
         html += '<a class="button secondary" href="' + escapeHtml(itemValido.url) + '">Link direto</a>';
+      } else if (itemValido.url && expiracao.expirado) {
+        html += '<span class="button disabled">Link direto expirado</span>';
       }
 
       html += '</div>';
@@ -288,6 +401,9 @@
     if (invalidos > 0) {
       status.innerHTML += " " + invalidos + (invalidos === 1 ? " cadastro possui erro." : " cadastros possuem erros.");
     }
+    if (expirados > 0) {
+      status.innerHTML += " " + expirados + (expirados === 1 ? " link expirado." : " links expirados.");
+    }
   }
 
   window.filtrarDownloads = renderizar;
@@ -295,6 +411,10 @@
   function iniciar() {
     preencherCategorias();
     renderizar();
+
+    if (window.setInterval) {
+      window.setInterval(renderizar, 30000);
+    }
   }
 
   if (document.readyState === "complete") {
