@@ -17,24 +17,13 @@
 */
 
 var PS3_DOWNLOADS = [
-  /*
   {
-    titulo: "Exemplo de PKG",
-    descricao: "Substitua este exemplo por um arquivo real.",
-    categoria: "Homebrew",
-    tipo: "PKG",
-    tamanho: "100 MB",
-    url: "https://servidor.exemplo/arquivo.pkg",
-    destino: ""
-  },
-  {
-    titulo: "Exemplo de ISO",
-    descricao: "Exemplo salvando diretamente na pasta PS3ISO.",
-    categoria: "ISO",
-    tipo: "ISO",
-    tamanho: "10 GB",
-    url: "https://servidor.exemplo/jogo.iso",
-    destino: "/dev_hdd0/PS3ISO/Jogo.iso"
+    titulo: "Teste de download ZIP",
+    descricao: "ZIP do proprio repositorio para validar o download pelo webMAN MOD.",
+    categoria: "Teste",
+    tipo: "ZIP",
+    tamanho: "Pequeno",
+    url: "https://github.com/leocalmeida/downgerenciador_ps3/archive/refs/heads/main.zip",
+    destino: "/dev_hdd0/packages/downgerenciador_ps3-main.zip"
   }
-  */
 ];
