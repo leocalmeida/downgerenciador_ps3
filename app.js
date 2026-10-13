@@ -30,6 +30,120 @@
     return textoSeguro(valor).toLowerCase();
   }
 
+  function removerQueryEFragmento(valor) {
+    var texto = textoSeguro(valor);
+    var posHash = texto.indexOf("#");
+    var posQuery;
+
+    if (posHash !== -1) {
+      texto = texto.substring(0, posHash);
+    }
+
+    posQuery = texto.indexOf("?");
+    if (posQuery !== -1) {
+      texto = texto.substring(0, posQuery);
+    }
+
+    return texto;
+  }
+
+  function nomeArquivo(caminho) {
+    var texto = removerQueryEFragmento(caminho);
+    var pos = texto.lastIndexOf("/");
+
+    if (pos !== -1) {
+      texto = texto.substring(pos + 1);
+    }
+
+    return texto;
+  }
+
+  function extrairExtensao(valor) {
+    var arquivo = nomeArquivo(valor);
+    var pos = arquivo.lastIndexOf(".");
+
+    if (pos <= 0 || pos === arquivo.length - 1) {
+      return "";
+    }
+
+    return arquivo.substring(pos + 1).toLowerCase();
+  }
+
+  function validarItem(item) {
+    var resultado = {
+      erros: [],
+      avisos: []
+    };
+    var extUrl;
+    var extDestino;
+    var arquivoDestino;
+
+    if (!item || typeof item !== "object") {
+      resultado.erros.push("Cadastro invalido: o item nao e um objeto.");
+      return resultado;
+    }
+
+    if (!textoSeguro(item.titulo)) {
+      resultado.avisos.push("Titulo nao informado.");
+    }
+
+    if (!textoSeguro(item.url)) {
+      resultado.erros.push("URL nao informada.");
+    }
+
+    if (!textoSeguro(item.tipo)) {
+      resultado.erros.push("Tipo nao informado.");
+    }
+
+    if (!textoSeguro(item.categoria)) {
+      resultado.avisos.push("Categoria nao informada; o item sera exibido como Outros.");
+    }
+
+    if (textoSeguro(item.url) && textoSeguro(item.destino)) {
+      extUrl = extrairExtensao(item.url);
+      extDestino = extrairExtensao(item.destino);
+
+      if (extUrl && extDestino && extUrl !== extDestino) {
+        resultado.erros.push(
+          "Extensao da URL (." + extUrl + ") diferente da extensao do destino (." + extDestino + ")."
+        );
+      }
+
+      arquivoDestino = nomeArquivo(item.destino);
+      if (/[:*?"<>|\\]/.test(arquivoDestino)) {
+        resultado.avisos.push("O nome do arquivo de destino possui caracteres potencialmente problematicos.");
+      }
+
+      if (/[ .]$/.test(arquivoDestino)) {
+        resultado.avisos.push("O nome do arquivo de destino termina com ponto ou espaco.");
+      }
+    }
+
+    return resultado;
+  }
+
+  function renderizarValidacao(validacao) {
+    var html = "";
+    var i;
+
+    if (validacao.erros.length === 0 && validacao.avisos.length === 0) {
+      return html;
+    }
+
+    html += '<div class="validation">';
+
+    for (i = 0; i < validacao.erros.length; i++) {
+      html += '<div class="validation-error"><strong>Erro:</strong> ' + escapeHtml(validacao.erros[i]) + '</div>';
+    }
+
+    for (i = 0; i < validacao.avisos.length; i++) {
+      html += '<div class="validation-warning"><strong>Aviso:</strong> ' + escapeHtml(validacao.avisos[i]) + '</div>';
+    }
+
+    html += '</div>';
+    return html;
+  }
+
   function categorias() {
     var mapa = {};
     var lista = [];
@@ -92,9 +206,11 @@
     var categoria = document.getElementById("category").value;
     var html = "";
     var total = 0;
+    var invalidos = 0;
     var i;
     var item;
     var destino;
+    var validacao;
 
     if (typeof PS3_DOWNLOADS === "undefined") {
       container.innerHTML = '<div class="empty">Nao foi possivel carregar downloads.js.</div>';
@@ -111,12 +227,17 @@
 
       total++;
       destino = item.destino ? item.destino : "/dev_hdd0/packages/";
+      validacao = validarItem(item);
+
+      if (validacao.erros.length > 0) {
+        invalidos++;
+      }
 
       html += '<div class="download-card">';
-      html += '<h2>' + escapeHtml(item.titulo) + '</h2>';
+      html += '<h2>' + escapeHtml(item.titulo || "Sem titulo") + '</h2>';
       html += '<div class="meta">';
       html += '<span>Categoria: <strong>' + escapeHtml(item.categoria || "Outros") + '</strong></span>';
-      html += '<span>Tipo: <strong>' + escapeHtml(item.tipo || "Arquivo") + '</strong></span>';
+      html += '<span>Tipo: <strong>' + escapeHtml(item.tipo || "Nao informado") + '</strong></span>';
       if (item.tamanho) {
         html += '<span>Tamanho: <strong>' + escapeHtml(item.tamanho) + '</strong></span>';
       }
@@ -127,8 +248,18 @@
       }
 
       html += '<div class="destination">Destino: ' + escapeHtml(destino) + '</div>';
-      html += '<a class="button" href="' + escapeHtml(montarUrlWebman(item)) + '">Baixar no PS3</a>';
-      html += '<a class="button secondary" href="' + escapeHtml(item.url) + '">Link direto</a>';
+      html += renderizarValidacao(validacao);
+
+      if (validacao.erros.length === 0) {
+        html += '<a class="button" href="' + escapeHtml(montarUrlWebman(item)) + '">Baixar no PS3</a>';
+      } else {
+        html += '<span class="button disabled">Download bloqueado</span>';
+      }
+
+      if (item.url) {
+        html += '<a class="button secondary" href="' + escapeHtml(item.url) + '">Link direto</a>';
+      }
+
       html += '</div>';
     }
 
@@ -142,6 +273,9 @@
 
     container.innerHTML = html;
     status.innerHTML = total + (total === 1 ? " item encontrado." : " itens encontrados.");
+    if (invalidos > 0) {
+      status.innerHTML += " " + invalidos + (invalidos === 1 ? " cadastro possui erro." : " cadastros possuem erros.");
+    }
   }
 
   window.filtrarDownloads = renderizar;
