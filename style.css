@@ -105,6 +105,26 @@ input, select {
   word-break: break-all;
 }
 
+.validation {
+  margin: 10px 0 14px 0;
+}
+
+.validation-error,
+.validation-warning {
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  border: 1px solid #526175;
+  background: #121923;
+}
+
+.validation-error {
+  border-color: #a54b4b;
+}
+
+.validation-warning {
+  border-color: #9a7a36;
+}
+
 .button {
   display: inline-block;
   background: #2f78c4;
@@ -125,6 +145,13 @@ input, select {
 .button.secondary {
   background: #374457;
   border-color: #64758d;
+}
+
+.button.disabled {
+  background: #343b45;
+  border-color: #555f6d;
+  color: #aeb6c0;
+  cursor: default;
 }
 
 .empty {
