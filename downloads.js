@@ -19,7 +19,9 @@
   - query string e fragmento nao interferem na deteccao da extensao;
   - se a URL nao possuir extensao identificavel, o tipo exibido sera ARQUIVO;
   - mantenha a extensao da URL e do destino coerentes quando o destino for informado;
-  - evite caracteres como : * ? " < > | e \ no nome do arquivo de destino;
+  - caracteres problematicos no nome do destino sao normalizados automaticamente;
+  - dois-pontos (:) viram " - "; * ? " < > | e \ viram "-";
+  - espacos duplicados e ponto/espaco no final do nome sao corrigidos automaticamente;
   - use virgula somente ENTRE os objetos do array; nao deixe virgula apos o ultimo item;
   - para link temporario de 15 minutos, prefira o formulario automatico de issue.
 
