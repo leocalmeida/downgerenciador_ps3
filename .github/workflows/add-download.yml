@@ -1,0 +1,90 @@
+name: Adicionar download por issue
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: add-download-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  add-download:
+    if: github.event.issue.user.login == github.repository_owner && startsWith(github.event.issue.title, '[DOWNLOAD]')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Processar cadastro
+        id: process
+        shell: bash
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          set +e
+          RESULT="$(python scripts/add_download.py 2>&1)"
+          STATUS=$?
+          set -e
+
+          echo "status=$STATUS" >> "$GITHUB_OUTPUT"
+          {
+            echo "result<<EOF"
+            echo "$RESULT"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Informar erro
+        if: steps.process.outputs.status != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          RESULT: ${{ steps.process.outputs.result }}
+        run: |
+          gh issue comment "$ISSUE_NUMBER" --body "Falha ao adicionar o download automaticamente: $RESULT"
+          exit 1
+
+      - name: Commitar alteracao
+        id: commit
+        if: steps.process.outputs.status == '0'
+        shell: bash
+        run: |
+          if git diff --quiet -- downloads.js; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add downloads.js
+          git commit -m "Adiciona download via issue #${{ github.event.issue.number }}"
+          git push origin main
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Finalizar issue
+        if: steps.process.outputs.status == '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          RESULT: ${{ steps.process.outputs.result }}
+          CHANGED: ${{ steps.commit.outputs.changed }}
+        run: |
+          if [ "$CHANGED" = "true" ]; then
+            gh issue comment "$ISSUE_NUMBER" --body "Download adicionado automaticamente ao downloads.js. Resultado: $RESULT"
+          else
+            gh issue comment "$ISSUE_NUMBER" --body "Nenhuma alteracao foi necessaria. Resultado: $RESULT"
+          fi
+
+          gh issue close "$ISSUE_NUMBER" --reason completed
