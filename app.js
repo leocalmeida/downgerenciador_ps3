@@ -69,6 +69,25 @@
     return arquivo.substring(pos + 1).toLowerCase();
   }
 
+  function tipoDoItem(item) {
+    var extensao;
+
+    if (!item || typeof item !== "object") {
+      return "ARQUIVO";
+    }
+
+    extensao = extrairExtensao(item.url);
+    return extensao ? extensao.toUpperCase() : "ARQUIVO";
+  }
+
+  function categoriaDoItem(item) {
+    if (!item || typeof item !== "object") {
+      return "Outros";
+    }
+
+    return textoSeguro(item.categoria) || "Outros";
+  }
+
   function numero2(valor) {
     return valor < 10 ? "0" + valor : String(valor);
   }
@@ -153,6 +172,7 @@
     var extUrl;
     var extDestino;
     var arquivoDestino;
+    var tipoInferido;
 
     if (!item || typeof item !== "object") {
       resultado.erros.push("Cadastro invalido: o item nao e um objeto.");
@@ -167,12 +187,11 @@
       resultado.erros.push("URL nao informada.");
     }
 
-    if (!textoSeguro(item.tipo)) {
-      resultado.erros.push("Tipo nao informado.");
-    }
-
-    if (!textoSeguro(item.categoria)) {
-      resultado.avisos.push("Categoria nao informada; o item sera exibido como Outros.");
+    tipoInferido = tipoDoItem(item);
+    if (textoSeguro(item.tipo) && normalizar(item.tipo) !== normalizar(tipoInferido)) {
+      resultado.avisos.push(
+        "O campo tipo foi ignorado. Pela extensao da URL, o tipo utilizado sera " + tipoInferido + "."
+      );
     }
 
     if (textoSeguro(item.expiraEm) && parseDataIso(item.expiraEm) === null) {
@@ -246,7 +265,6 @@
     var mapa = {};
     var lista = [];
     var i;
-    var item;
     var cat;
 
     if (typeof PS3_DOWNLOADS === "undefined") {
@@ -254,13 +272,8 @@
     }
 
     for (i = 0; i < PS3_DOWNLOADS.length; i++) {
-      item = PS3_DOWNLOADS[i];
-      if (!item || typeof item !== "object") {
-        continue;
-      }
-
-      cat = textoSeguro(item.categoria);
-      if (cat && !mapa[cat]) {
+      cat = categoriaDoItem(PS3_DOWNLOADS[i]);
+      if (!mapa[cat]) {
         mapa[cat] = true;
         lista.push(cat);
       }
@@ -291,7 +304,7 @@
       return !busca && !categoria;
     }
 
-    if (categoria && item.categoria !== categoria) {
+    if (categoria && categoriaDoItem(item) !== categoria) {
       return false;
     }
 
@@ -301,8 +314,8 @@
 
     conteudo = normalizar(item.titulo) + " " +
       normalizar(item.descricao) + " " +
-      normalizar(item.categoria) + " " +
-      normalizar(item.tipo);
+      normalizar(categoriaDoItem(item)) + " " +
+      normalizar(tipoDoItem(item));
 
     return conteudo.indexOf(busca) !== -1;
   }
@@ -356,8 +369,8 @@
       html += '<div class="download-card">';
       html += '<h2>' + escapeHtml(itemValido.titulo || "Sem titulo") + '</h2>';
       html += '<div class="meta">';
-      html += '<span>Categoria: <strong>' + escapeHtml(itemValido.categoria || "Outros") + '</strong></span>';
-      html += '<span>Tipo: <strong>' + escapeHtml(itemValido.tipo || "Nao informado") + '</strong></span>';
+      html += '<span>Categoria: <strong>' + escapeHtml(categoriaDoItem(itemValido)) + '</strong></span>';
+      html += '<span>Tipo: <strong>' + escapeHtml(tipoDoItem(itemValido)) + '</strong></span>';
       if (itemValido.tamanho) {
         html += '<span>Tamanho: <strong>' + escapeHtml(itemValido.tamanho) + '</strong></span>';
       }
