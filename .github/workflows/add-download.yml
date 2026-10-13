@@ -15,7 +15,11 @@ concurrency:
 
 jobs:
   add-download:
-    if: github.event.issue.user.login == github.repository_owner && startsWith(github.event.issue.title, '[DOWNLOAD]')
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      contains(github.event.issue.body, '### URL') &&
+      contains(github.event.issue.body, '### Destino (opcional)') &&
+      contains(github.event.issue.body, '### Link temporario?')
     runs-on: ubuntu-latest
 
     steps:
