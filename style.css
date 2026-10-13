@@ -105,6 +105,21 @@ input, select {
   word-break: break-all;
 }
 
+.expiration {
+  margin: 10px 0 14px 0;
+  padding: 8px 10px;
+  border: 1px solid #526175;
+  background: #121923;
+}
+
+.expiration.active {
+  border-color: #4f8c59;
+}
+
+.expiration.expired {
+  border-color: #a54b4b;
+}
+
 .validation {
   margin: 10px 0 14px 0;
 }
