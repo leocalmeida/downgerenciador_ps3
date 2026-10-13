@@ -8,10 +8,15 @@
   - titulo: nome exibido no site
   - descricao: texto curto
   - categoria: Homebrew, Patch, Traducao, Tema, ISO, Utilitario etc.
-  - tipo: PKG, ZIP, ISO, RAP, PUP etc.
+  - tipo: PKG, ZIP, ISO, RAP, PUP etc. Nao deixe vazio.
   - tamanho: apenas informativo
   - url: link DIRETO do arquivo
   - destino: opcional. Se vazio, o webMAN salva em /dev_hdd0/packages/
+
+  Regras importantes:
+  - mantenha a extensao da URL e do destino coerentes quando o destino for informado;
+  - evite caracteres como : * ? " < > | e \ no nome do arquivo de destino;
+  - use virgula somente ENTRE os objetos do array; nao deixe virgula apos o ultimo item.
 
   Para ISO, informe o caminho completo, por exemplo:
   /dev_hdd0/PS3ISO/Nome do Jogo.iso
@@ -25,7 +30,7 @@
     tamanho: "100 MB",
     url: "https://servidor.exemplo/arquivo.zip",
     destino: "/dev_hdd0/packages/arquivo.zip"
-  },
+  }
 */
 
 var PS3_DOWNLOADS = [
@@ -46,5 +51,5 @@ var PS3_DOWNLOADS = [
     tamanho: "",
     url: "https://cdn.psgamedl.com/PS3-DEC/Naruto%20Shippuden%20-%20Ultimate%20Ninja%20Storm%20Generations%20(USA)%20(EnFrEs).zip?e=1791939212&s=ZlhAcwYMVv11Bo-0M02znigw-bouvbEMPVuUCnAilv8",
     destino: "/dev_hdd0/PS3ISO/Naruto Shippuden: Ultimate Ninja Storm Generations.rar"
-  },
+  }
 ];
