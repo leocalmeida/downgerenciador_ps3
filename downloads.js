@@ -1,35 +1,36 @@
 /*
   CADASTRO DE DOWNLOADS
 
-  Para adicionar um item, copie o MODELO abaixo, cole dentro de PS3_DOWNLOADS
-  e altere os campos conforme necessario.
+  Para adicionar manualmente um item, copie um MODELO abaixo, cole dentro de
+  PS3_DOWNLOADS e altere apenas os campos necessarios.
 
   Campos:
-  - titulo: nome exibido no site
-  - descricao: texto curto
-  - categoria: Homebrew, Patch, Traducao, Tema, ISO, Utilitario etc.
-  - tipo: PKG, ZIP, ISO, RAP, PUP etc. Nao deixe vazio.
-  - tamanho: apenas informativo
+  - titulo: opcional; nome exibido no site
+  - descricao: opcional; texto curto
+  - categoria: opcional; quando vazia/ausente, o site exibe Outros
+  - tipo: opcional e ignorado pelo site; o tipo real vem da extensao da URL
+  - tamanho: opcional; apenas informativo
   - url: link DIRETO do arquivo
   - destino: opcional. Se vazio, o webMAN salva em /dev_hdd0/packages/
   - expiraEm: opcional. Timestamp ISO para links temporarios. Sem esse campo, o link e permanente.
 
   Regras importantes:
+  - o tipo e inferido automaticamente pela extensao da URL: .pkg -> PKG, .zip -> ZIP etc.;
+  - query string e fragmento nao interferem na deteccao da extensao;
+  - se a URL nao possuir extensao identificavel, o tipo exibido sera ARQUIVO;
   - mantenha a extensao da URL e do destino coerentes quando o destino for informado;
   - evite caracteres como : * ? " < > | e \ no nome do arquivo de destino;
-  - use virgula somente ENTRE os objetos do array; nao deixe virgula apos o ultimo item.
+  - use virgula somente ENTRE os objetos do array; nao deixe virgula apos o ultimo item;
   - para link temporario de 15 minutos, prefira o formulario automatico de issue.
 
-  Para ISO, informe o caminho completo, por exemplo:
-  /dev_hdd0/PS3ISO/Nome do Jogo.iso
+  MODELO MINIMO:
+  {
+    url: "https://servidor.exemplo/arquivo.zip"
+  }
 
-  MODELO PERMANENTE:
+  MODELO COM DESTINO:
   {
     titulo: "Nome do arquivo",
-    descricao: "Descricao curta do conteudo.",
-    categoria: "Categoria",
-    tipo: "ZIP",
-    tamanho: "100 MB",
     url: "https://servidor.exemplo/arquivo.zip",
     destino: "/dev_hdd0/packages/arquivo.zip"
   }
@@ -37,10 +38,6 @@
   MODELO TEMPORARIO:
   {
     titulo: "Nome do arquivo",
-    descricao: "Descricao curta do conteudo.",
-    categoria: "Categoria",
-    tipo: "ZIP",
-    tamanho: "100 MB",
     url: "https://servidor.exemplo/arquivo.zip",
     destino: "/dev_hdd0/packages/arquivo.zip",
     expiraEm: "2026-10-13T01:45:00Z"
