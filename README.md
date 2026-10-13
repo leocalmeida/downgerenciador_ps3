@@ -31,12 +31,25 @@ Quando apenas a URL for informada, o sistema:
 - identifica o nome do arquivo pela URL;
 - ignora query string e fragmento para descobrir nome e extensao;
 - preserva a URL original completa em `downloads.js`;
-- infere `tipo` pela extensao;
+- define `tipo` automaticamente pela extensao da URL;
 - gera o titulo a partir do nome do arquivo;
-- usa `Outros` como categoria inicial;
+- usa `Outros` quando nenhuma categoria for definida;
 - grava por padrao em `/dev_hdd0/packages/<nome-do-arquivo>`;
 - impede duplicacao da mesma URL;
 - solicita uma nova compilacao do GitHub Pages apos o commit.
+
+Nao e necessario informar manualmente `categoria` nem `tipo`.
+
+O tipo exibido no site sempre vem da extensao real da URL:
+
+```text
+arquivo.pkg -> PKG
+arquivo.zip -> ZIP
+arquivo.iso -> ISO
+arquivo.rap -> RAP
+```
+
+Se a URL nao tiver extensao identificavel, o tipo exibido sera `ARQUIVO`.
 
 Se `Destino (opcional)` for informado, ele prevalece. Uma pasta terminada em `/` recebe automaticamente o nome do arquivo. Um caminho completo tambem pode ser informado.
 
@@ -44,20 +57,7 @@ Se `Destino (opcional)` for informado, ele prevalece. Uma pasta terminada em `/`
 
 No formulario `Adicionar download`, selecione `Sim - expira em 15 minutos` em `Link temporario?`.
 
-Nesse caso, o script grava no item um timestamp UTC no campo `expiraEm`, calculado como horario do cadastro + 15 minutos:
-
-```javascript
-{
-  titulo: "app",
-  descricao: "",
-  categoria: "Outros",
-  tipo: "PKG",
-  tamanho: "",
-  url: "https://servidor.com/app.pkg",
-  destino: "/dev_hdd0/packages/app.pkg",
-  expiraEm: "2026-10-13T01:45:00Z"
-}
-```
+Nesse caso, o script grava no item um timestamp UTC no campo `expiraEm`, calculado como horario do cadastro + 15 minutos.
 
 No site:
 
@@ -67,28 +67,6 @@ No site:
 - itens sem `expiraEm` continuam permanentes.
 
 A verificacao usa o relogio do console/navegador. Portanto, a data e hora do PS3 devem estar corretas.
-
-Exemplo permanente:
-
-```text
-URL: https://servidor.com/app.pkg
-Destino: [vazio]
-Link temporario?: Nao
-```
-
-Resultado:
-
-```javascript
-{
-  titulo: "app",
-  descricao: "",
-  categoria: "Outros",
-  tipo: "PKG",
-  tamanho: "",
-  url: "https://servidor.com/app.pkg",
-  destino: "/dev_hdd0/packages/app.pkg"
-}
-```
 
 Tambem e possivel executar localmente:
 
@@ -110,19 +88,24 @@ python scripts/add_download.py "https://servidor.com/app.pkg" "" --temporario
 
 ## Cadastro manual
 
-Ainda e possivel editar `downloads.js` diretamente e adicionar um objeto dentro de `PS3_DOWNLOADS`:
+Ainda e possivel editar `downloads.js` diretamente. Para um cadastro minimo, apenas `url` e suficiente para determinar o tipo; os demais campos sao opcionais conforme a necessidade:
 
 ```javascript
 {
-  titulo: "Meu Homebrew",
-  descricao: "Descricao curta.",
-  categoria: "Homebrew",
-  tipo: "PKG",
-  tamanho: "120 MB",
+  titulo: "Meu arquivo",
   url: "https://servidor.com/arquivo.pkg",
   destino: "/dev_hdd0/packages/arquivo.pkg"
 }
 ```
+
+Nesse exemplo o site exibira automaticamente:
+
+```text
+Categoria: Outros
+Tipo: PKG
+```
+
+Se um campo `tipo` antigo existir no objeto e estiver diferente da extensao da URL, ele sera ignorado e o site usara a extensao da URL como fonte de verdade.
 
 Para um cadastro manual temporario, adicione `expiraEm` em formato ISO:
 
