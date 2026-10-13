@@ -36,7 +36,13 @@ def extract_issue_field(body, label):
 
 
 def sanitize_filename(name):
-    name = re.sub(r'[<>:"/\\|?*\x00-\x1f]', "_", name)
+    # Mantem o nome legivel: dois-pontos funcionam como separador de titulo.
+    name = re.sub(r":", " - ", name)
+    # Demais caracteres potencialmente problematicos viram hifen.
+    name = re.sub(r'[<>"/\\|?*\x00-\x1f]', "-", name)
+    # Evita espacos duplicados criados durante as substituicoes.
+    name = re.sub(r"\s+", " ", name)
+    # Nome de arquivo nao deve terminar em ponto ou espaco.
     name = name.rstrip(" .")
     return name or "arquivo"
 
@@ -70,9 +76,8 @@ def normalize_destination(destination, filename):
         return destination + filename
 
     directory, dest_filename = posixpath.split(destination)
-    dest_filename = sanitize_filename(dest_filename)
-    normalized = posixpath.join(directory, dest_filename) if directory else dest_filename
 
+    # A validacao de extensao usa o nome original antes da sanitizacao.
     url_ext = extension_of(filename)
     dest_ext = extension_of(dest_filename)
     if url_ext and dest_ext and url_ext != dest_ext:
@@ -81,7 +86,8 @@ def normalize_destination(destination, filename):
             % (dest_ext, url_ext)
         )
 
-    return normalized
+    dest_filename = sanitize_filename(dest_filename)
+    return posixpath.join(directory, dest_filename) if directory else dest_filename
 
 
 def expiration_timestamp():
