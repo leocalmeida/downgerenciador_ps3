@@ -4,8 +4,10 @@
 Uso local:
     python scripts/add_download.py "https://servidor/arquivo.pkg"
     python scripts/add_download.py "https://servidor/arquivo.iso" "/dev_hdd0/PS3ISO/arquivo.iso"
+    python scripts/add_download.py "https://servidor/arquivo.pkg" "" --temporario
 
-No GitHub Actions, a URL e o destino opcional sao extraidos de ISSUE_BODY.
+No GitHub Actions, a URL, o destino opcional e a opcao de link temporario
+sao extraidos de ISSUE_BODY.
 """
 
 import json
@@ -13,10 +15,12 @@ import os
 import posixpath
 import re
 import sys
+from datetime import datetime, timedelta, timezone
 from urllib.parse import unquote, urlsplit
 
 DOWNLOADS_FILE = "downloads.js"
 DEFAULT_DIRECTORY = "/dev_hdd0/packages/"
+TEMPORARY_MINUTES = 15
 
 
 def extract_issue_field(body, label):
@@ -80,11 +84,16 @@ def normalize_destination(destination, filename):
     return normalized
 
 
+def expiration_timestamp():
+    expires = datetime.now(timezone.utc) + timedelta(minutes=TEMPORARY_MINUTES)
+    return expires.replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
 def js_string(value):
     return json.dumps(value, ensure_ascii=True)
 
 
-def build_entry(url, destination):
+def build_entry(url, destination, temporary=False):
     filename = filename_from_url(url)
     destination = normalize_destination(destination, filename)
     ext = extension_of(filename)
@@ -95,7 +104,7 @@ def build_entry(url, destination):
     else:
         title = filename
 
-    return {
+    item = {
         "titulo": title or filename,
         "descricao": "",
         "categoria": "Outros",
@@ -105,21 +114,31 @@ def build_entry(url, destination):
         "destino": destination,
     }
 
+    if temporary:
+        item["expiraEm"] = expiration_timestamp()
+
+    return item
+
 
 def render_entry(item):
-    return "\n".join(
-        [
-            "  {",
-            "    titulo: %s," % js_string(item["titulo"]),
-            "    descricao: %s," % js_string(item["descricao"]),
-            "    categoria: %s," % js_string(item["categoria"]),
-            "    tipo: %s," % js_string(item["tipo"]),
-            "    tamanho: %s," % js_string(item["tamanho"]),
-            "    url: %s," % js_string(item["url"]),
-            "    destino: %s" % js_string(item["destino"]),
-            "  }",
-        ]
-    )
+    lines = [
+        "  {",
+        "    titulo: %s," % js_string(item["titulo"]),
+        "    descricao: %s," % js_string(item["descricao"]),
+        "    categoria: %s," % js_string(item["categoria"]),
+        "    tipo: %s," % js_string(item["tipo"]),
+        "    tamanho: %s," % js_string(item["tamanho"]),
+        "    url: %s," % js_string(item["url"]),
+    ]
+
+    if item.get("expiraEm"):
+        lines.append("    destino: %s," % js_string(item["destino"]))
+        lines.append("    expiraEm: %s" % js_string(item["expiraEm"]))
+    else:
+        lines.append("    destino: %s" % js_string(item["destino"]))
+
+    lines.append("  }")
+    return "\n".join(lines)
 
 
 def add_to_downloads(item):
@@ -156,30 +175,49 @@ def add_to_downloads(item):
     return True
 
 
+def is_temporary_value(value):
+    return (value or "").strip().lower().startswith("sim")
+
+
 def get_input():
     if len(sys.argv) >= 2:
         url = sys.argv[1].strip()
-        destination = sys.argv[2].strip() if len(sys.argv) >= 3 else ""
-        return url, destination
+        destination = ""
+        temporary = False
+
+        if len(sys.argv) >= 3 and sys.argv[2] != "--temporario":
+            destination = sys.argv[2].strip()
+
+        if "--temporario" in sys.argv[2:]:
+            temporary = True
+
+        return url, destination, temporary
 
     issue_body = os.environ.get("ISSUE_BODY", "")
     url = extract_issue_field(issue_body, "URL")
     destination = extract_issue_field(issue_body, "Destino (opcional)")
+    temporary_value = extract_issue_field(issue_body, "Link temporario?")
 
     if not url:
         raise ValueError("Campo URL nao encontrado na issue.")
 
-    return url, destination
+    return url, destination, is_temporary_value(temporary_value)
 
 
 def main():
     try:
-        url, destination = get_input()
-        item = build_entry(url, destination)
+        url, destination, temporary = get_input()
+        item = build_entry(url, destination, temporary)
         changed = add_to_downloads(item)
 
         if changed:
-            print("ADDED|%s|%s" % (item["titulo"], item["destino"]))
+            if item.get("expiraEm"):
+                print(
+                    "ADDED|%s|%s|expiraEm=%s"
+                    % (item["titulo"], item["destino"], item["expiraEm"])
+                )
+            else:
+                print("ADDED|%s|%s" % (item["titulo"], item["destino"]))
         else:
             print("DUPLICATE|URL ja cadastrada")
         return 0
