@@ -7,11 +7,74 @@ Pagina simples para abrir no navegador do PlayStation 3 e disparar downloads dir
 - `index.html` - pagina principal
 - `style.css` - visual leve para o navegador do PS3
 - `downloads.js` - lista de arquivos exibidos no site
-- `app.js` - filtros e montagem dos comandos do webMAN
+- `app.js` - filtros, validacoes e montagem dos comandos do webMAN
+- `scripts/add_download.py` - gera automaticamente novos itens de `downloads.js`
+- `.github/ISSUE_TEMPLATE/add-download.yml` - formulario para cadastrar uma URL
+- `.github/workflows/add-download.yml` - automacao que atualiza `downloads.js`
 
-## Como adicionar um download
+## Cadastro automatico
 
-Edite `downloads.js` e adicione um objeto dentro de `PS3_DOWNLOADS`:
+O modo recomendado e usar o formulario de issue **Adicionar download**.
+
+1. Abra `Issues` no repositorio.
+2. Clique em `New issue`.
+3. Escolha `Adicionar download`.
+4. Informe a URL direta do arquivo.
+5. Se quiser outro destino, preencha `Destino (opcional)`.
+6. Crie a issue.
+
+Por seguranca, somente issues abertas pelo dono do repositorio executam a automacao.
+
+Quando apenas a URL for informada, o sistema:
+
+- identifica o nome do arquivo pela URL;
+- ignora query string e fragmento para descobrir nome e extensao;
+- preserva a URL original completa em `downloads.js`;
+- infere `tipo` pela extensao;
+- gera o titulo a partir do nome do arquivo;
+- usa `Outros` como categoria inicial;
+- grava por padrao em `/dev_hdd0/packages/<nome-do-arquivo>`;
+- impede duplicacao da mesma URL;
+- solicita uma nova compilacao do GitHub Pages apos o commit.
+
+Se `Destino (opcional)` for informado, ele prevalece. Uma pasta terminada em `/` recebe automaticamente o nome do arquivo. Um caminho completo tambem pode ser informado.
+
+Exemplo:
+
+```text
+URL: https://servidor.com/app.pkg
+Destino: [vazio]
+```
+
+Resultado:
+
+```javascript
+{
+  titulo: "app",
+  descricao: "",
+  categoria: "Outros",
+  tipo: "PKG",
+  tamanho: "",
+  url: "https://servidor.com/app.pkg",
+  destino: "/dev_hdd0/packages/app.pkg"
+}
+```
+
+Tambem e possivel executar localmente:
+
+```text
+python scripts/add_download.py "https://servidor.com/app.pkg"
+```
+
+ou com destino especifico:
+
+```text
+python scripts/add_download.py "https://servidor.com/jogo.iso" "/dev_hdd0/PS3ISO/jogo.iso"
+```
+
+## Cadastro manual
+
+Ainda e possivel editar `downloads.js` diretamente e adicionar um objeto dentro de `PS3_DOWNLOADS`:
 
 ```javascript
 {
@@ -21,24 +84,14 @@ Edite `downloads.js` e adicione um objeto dentro de `PS3_DOWNLOADS`:
   tipo: "PKG",
   tamanho: "120 MB",
   url: "https://servidor.com/arquivo.pkg",
-  destino: ""
+  destino: "/dev_hdd0/packages/arquivo.pkg"
 }
 ```
 
-Quando `destino` estiver vazio, o webMAN MOD usa `/dev_hdd0/packages/`.
+Para salvar em outra pasta, informe o caminho completo, por exemplo:
 
-Para salvar em outra pasta, informe o caminho completo:
-
-```javascript
-{
-  titulo: "Minha ISO",
-  descricao: "ISO de exemplo.",
-  categoria: "ISO",
-  tipo: "ISO",
-  tamanho: "8 GB",
-  url: "https://servidor.com/jogo.iso",
-  destino: "/dev_hdd0/PS3ISO/Jogo.iso"
-}
+```text
+/dev_hdd0/PS3ISO/Jogo.iso
 ```
 
 ## Comando usado no PS3
@@ -59,21 +112,13 @@ Isso exige o webMAN MOD ativo no console.
 
 ## GitHub Pages
 
-Para publicar pelo GitHub Pages:
-
-1. Abra `Settings` do repositorio.
-2. Entre em `Pages`.
-3. Em `Build and deployment`, escolha `Deploy from a branch`.
-4. Selecione a branch `main` e a pasta `/ (root)`.
-5. Salve.
-
-Como este repositorio se chama `private_ps3`, o endereco esperado do projeto e:
+O endereco esperado do projeto e:
 
 ```text
-https://leocalmeida.github.io/private_ps3/
+https://leocalmeida.github.io/downgerenciador_ps3/
 ```
 
-Se a sua conta GitHub nao oferecer Pages para repositorios privados, torne este repositorio publico ou mantenha o codigo privado e publique uma copia em um repositorio publico dedicado ao site.
+A automacao de cadastro solicita explicitamente um novo build do Pages depois de atualizar `downloads.js`, pois commits criados com o `GITHUB_TOKEN` nao disparam um build do Pages automaticamente.
 
 ## Observacao sobre links
 
