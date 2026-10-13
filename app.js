@@ -14,12 +14,49 @@
       .replace(/"/g, "&quot;");
   }
 
+  function sanitizarNomeArquivo(nome) {
+    var resultado = textoSeguro(nome);
+
+    resultado = resultado.replace(/:/g, " - ");
+    resultado = resultado.replace(/[*?"<>|\\]/g, "-");
+    resultado = resultado.replace(/\s+/g, " ");
+    resultado = resultado.replace(/[ .]+$/g, "");
+
+    return resultado || "arquivo";
+  }
+
+  function sanitizarDestino(destino) {
+    var texto = textoSeguro(destino);
+    var pos;
+    var diretorio;
+    var arquivo;
+
+    if (!texto) {
+      return "";
+    }
+
+    pos = texto.lastIndexOf("/");
+    if (pos === -1) {
+      return sanitizarNomeArquivo(texto);
+    }
+
+    diretorio = texto.substring(0, pos + 1);
+    arquivo = texto.substring(pos + 1);
+
+    if (!arquivo) {
+      return texto;
+    }
+
+    return diretorio + sanitizarNomeArquivo(arquivo);
+  }
+
   function montarUrlWebman(item) {
     var base = "http://127.0.0.1/xmb.ps3/download.ps3?";
     var partes = [];
+    var destino = sanitizarDestino(item.destino);
 
-    if (item.destino) {
-      partes.push("to=" + encodeURIComponent(item.destino));
+    if (destino) {
+      partes.push("to=" + encodeURIComponent(destino));
     }
 
     partes.push("url=" + encodeURIComponent(item.url));
@@ -171,7 +208,6 @@
     };
     var extUrl;
     var extDestino;
-    var arquivoDestino;
     var tipoInferido;
 
     if (!item || typeof item !== "object") {
@@ -206,15 +242,6 @@
         resultado.erros.push(
           "Extensao da URL (." + extUrl + ") diferente da extensao do destino (." + extDestino + ")."
         );
-      }
-
-      arquivoDestino = nomeArquivo(item.destino);
-      if (/[:*?"<>|\\]/.test(arquivoDestino)) {
-        resultado.avisos.push("O nome do arquivo de destino possui caracteres potencialmente problematicos.");
-      }
-
-      if (/[ .]$/.test(arquivoDestino)) {
-        resultado.avisos.push("O nome do arquivo de destino termina com ponto ou espaco.");
       }
     }
 
@@ -353,7 +380,7 @@
 
       total++;
       itemValido = item && typeof item === "object" ? item : {};
-      destino = itemValido.destino ? itemValido.destino : "/dev_hdd0/packages/";
+      destino = itemValido.destino ? sanitizarDestino(itemValido.destino) : "/dev_hdd0/packages/";
       validacao = validarItem(item);
       expiracao = obterExpiracao(itemValido, agora);
       bloqueado = validacao.erros.length > 0 || expiracao.expirado;
