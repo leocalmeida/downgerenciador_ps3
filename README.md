@@ -35,6 +35,7 @@ Quando apenas a URL for informada, o sistema:
 - gera o titulo a partir do nome do arquivo;
 - usa `Outros` quando nenhuma categoria for definida;
 - grava por padrao em `/dev_hdd0/packages/<nome-do-arquivo>`;
+- sanitiza automaticamente caracteres problematicos no nome do arquivo de destino;
 - impede duplicacao da mesma URL;
 - solicita uma nova compilacao do GitHub Pages apos o commit.
 
@@ -52,6 +53,35 @@ arquivo.rap -> RAP
 Se a URL nao tiver extensao identificavel, o tipo exibido sera `ARQUIVO`.
 
 Se `Destino (opcional)` for informado, ele prevalece. Uma pasta terminada em `/` recebe automaticamente o nome do arquivo. Um caminho completo tambem pode ser informado.
+
+### Normalizacao do nome de destino
+
+A sanitizacao altera apenas o **nome do arquivo**, preservando o diretorio e a extensao.
+
+Regras principais:
+
+```text
+:       ->  - 
+* ? " < > | \  -> -
+espacos duplicados -> um unico espaco
+ponto/espaco no final -> removido
+```
+
+Exemplo:
+
+```text
+/dev_hdd0/PS3ISO/Naruto Shippuden: Ultimate Ninja Storm Generations.iso
+```
+
+vira:
+
+```text
+/dev_hdd0/PS3ISO/Naruto Shippuden - Ultimate Ninja Storm Generations.iso
+```
+
+A validacao entre a extensao da URL e a extensao do destino continua sendo feita normalmente e nao e afetada pela sanitizacao.
+
+A mesma regra e aplicada pelo `app.js` em cadastros manuais antigos, antes de montar o comando enviado ao webMAN.
 
 ### Links temporarios
 
