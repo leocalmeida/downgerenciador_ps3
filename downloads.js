@@ -1,7 +1,8 @@
 /*
   CADASTRO DE DOWNLOADS
 
-  Para adicionar um item, copie um bloco e altere os campos.
+  Para adicionar um item, copie o MODELO abaixo, cole dentro de PS3_DOWNLOADS
+  e altere os campos conforme necessario.
 
   Campos:
   - titulo: nome exibido no site
@@ -14,6 +15,17 @@
 
   Para ISO, informe o caminho completo, por exemplo:
   /dev_hdd0/PS3ISO/Nome do Jogo.iso
+
+  MODELO:
+  {
+    titulo: "Nome do arquivo",
+    descricao: "Descricao curta do conteudo.",
+    categoria: "Categoria",
+    tipo: "ZIP",
+    tamanho: "100 MB",
+    url: "https://servidor.exemplo/arquivo.zip",
+    destino: "/dev_hdd0/packages/arquivo.zip"
+  },
 */
 
 var PS3_DOWNLOADS = [
