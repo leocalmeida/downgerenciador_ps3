@@ -7,6 +7,7 @@ on:
 permissions:
   contents: write
   issues: write
+  pages: write
 
 concurrency:
   group: add-download-${{ github.repository }}
@@ -72,6 +73,13 @@ jobs:
           git commit -m "Adiciona download via issue #${{ github.event.issue.number }}"
           git push origin main
           echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Atualizar GitHub Pages
+        if: steps.process.outputs.status == '0' && steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/pages/builds" >/dev/null
 
       - name: Finalizar issue
         if: steps.process.outputs.status == '0'
