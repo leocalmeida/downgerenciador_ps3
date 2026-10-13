@@ -7,7 +7,7 @@ Pagina simples para abrir no navegador do PlayStation 3 e disparar downloads dir
 - `index.html` - pagina principal
 - `style.css` - visual leve para o navegador do PS3
 - `downloads.js` - lista de arquivos exibidos no site
-- `app.js` - filtros, validacoes e montagem dos comandos do webMAN
+- `app.js` - filtros, validacoes, expiracao e montagem dos comandos do webMAN
 - `scripts/add_download.py` - gera automaticamente novos itens de `downloads.js`
 - `.github/ISSUE_TEMPLATE/add-download.yml` - formulario para cadastrar uma URL
 - `.github/workflows/add-download.yml` - automacao que atualiza `downloads.js`
@@ -21,7 +21,8 @@ O modo recomendado e usar o formulario de issue **Adicionar download**.
 3. Escolha `Adicionar download`.
 4. Informe a URL direta do arquivo.
 5. Se quiser outro destino, preencha `Destino (opcional)`.
-6. Crie a issue.
+6. Escolha se o link e permanente ou temporario.
+7. Crie a issue.
 
 Por seguranca, somente issues abertas pelo dono do repositorio executam a automacao.
 
@@ -39,11 +40,40 @@ Quando apenas a URL for informada, o sistema:
 
 Se `Destino (opcional)` for informado, ele prevalece. Uma pasta terminada em `/` recebe automaticamente o nome do arquivo. Um caminho completo tambem pode ser informado.
 
-Exemplo:
+### Links temporarios
+
+No formulario `Adicionar download`, selecione `Sim - expira em 15 minutos` em `Link temporario?`.
+
+Nesse caso, o script grava no item um timestamp UTC no campo `expiraEm`, calculado como horario do cadastro + 15 minutos:
+
+```javascript
+{
+  titulo: "app",
+  descricao: "",
+  categoria: "Outros",
+  tipo: "PKG",
+  tamanho: "",
+  url: "https://servidor.com/app.pkg",
+  destino: "/dev_hdd0/packages/app.pkg",
+  expiraEm: "2026-10-13T01:45:00Z"
+}
+```
+
+No site:
+
+- enquanto o link estiver valido, o horario limite e exibido;
+- apos a expiracao, `Baixar no PS3` e `Link direto` ficam bloqueados;
+- a pagina reavalia a expiracao periodicamente, mesmo se permanecer aberta;
+- itens sem `expiraEm` continuam permanentes.
+
+A verificacao usa o relogio do console/navegador. Portanto, a data e hora do PS3 devem estar corretas.
+
+Exemplo permanente:
 
 ```text
 URL: https://servidor.com/app.pkg
 Destino: [vazio]
+Link temporario?: Nao
 ```
 
 Resultado:
@@ -72,6 +102,12 @@ ou com destino especifico:
 python scripts/add_download.py "https://servidor.com/jogo.iso" "/dev_hdd0/PS3ISO/jogo.iso"
 ```
 
+Para gerar um link temporario localmente:
+
+```text
+python scripts/add_download.py "https://servidor.com/app.pkg" "" --temporario
+```
+
 ## Cadastro manual
 
 Ainda e possivel editar `downloads.js` diretamente e adicionar um objeto dentro de `PS3_DOWNLOADS`:
@@ -86,6 +122,12 @@ Ainda e possivel editar `downloads.js` diretamente e adicionar um objeto dentro 
   url: "https://servidor.com/arquivo.pkg",
   destino: "/dev_hdd0/packages/arquivo.pkg"
 }
+```
+
+Para um cadastro manual temporario, adicione `expiraEm` em formato ISO:
+
+```text
+expiraEm: "2026-10-13T01:45:00Z"
 ```
 
 Para salvar em outra pasta, informe o caminho completo, por exemplo:
