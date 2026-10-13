@@ -1,0 +1,170 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #10141b;
+  color: #f2f2f2;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 16px;
+}
+
+body {
+  line-height: 1.45;
+}
+
+#page {
+  min-height: 100%;
+}
+
+.wrap {
+  width: 92%;
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+#header {
+  background: #1a2230;
+  border-bottom: 3px solid #2f78c4;
+  padding: 24px 0 20px 0;
+  margin-bottom: 22px;
+}
+
+#header h1 {
+  margin: 0 0 6px 0;
+  font-size: 30px;
+}
+
+#header p {
+  margin: 0;
+  color: #c7d2df;
+}
+
+.panel {
+  background: #1a2230;
+  border: 1px solid #313d4e;
+  padding: 16px;
+  margin-bottom: 18px;
+}
+
+.toolbar-row {
+  margin-bottom: 12px;
+}
+
+.toolbar-row label {
+  display: inline-block;
+  width: 90px;
+  font-weight: bold;
+}
+
+input, select {
+  background: #0e131a;
+  color: #ffffff;
+  border: 1px solid #526175;
+  padding: 10px;
+  font-size: 16px;
+  width: 60%;
+}
+
+.toolbar-actions {
+  margin-top: 10px;
+}
+
+.status {
+  padding: 10px 2px;
+  color: #c7d2df;
+}
+
+.download-card {
+  background: #18202b;
+  border: 1px solid #344154;
+  margin-bottom: 16px;
+  padding: 16px;
+}
+
+.download-card h2 {
+  margin: 0 0 8px 0;
+  font-size: 22px;
+  color: #ffffff;
+}
+
+.meta {
+  color: #b9c6d5;
+  margin-bottom: 10px;
+}
+
+.meta span {
+  margin-right: 12px;
+}
+
+.description {
+  margin: 10px 0 14px 0;
+}
+
+.destination {
+  margin: 8px 0 14px 0;
+  color: #9fb2c8;
+  word-break: break-all;
+}
+
+.button {
+  display: inline-block;
+  background: #2f78c4;
+  color: #ffffff;
+  text-decoration: none;
+  border: 1px solid #5b9ddd;
+  padding: 11px 16px;
+  margin: 4px 8px 4px 0;
+  font-weight: bold;
+}
+
+.button:hover,
+.button:focus {
+  background: #3f8bd7;
+  outline: 2px solid #ffffff;
+}
+
+.button.secondary {
+  background: #374457;
+  border-color: #64758d;
+}
+
+.empty {
+  background: #18202b;
+  border: 1px dashed #526175;
+  padding: 22px;
+  margin-bottom: 18px;
+  text-align: center;
+  color: #c7d2df;
+}
+
+.help h2 {
+  margin-top: 0;
+}
+
+#footer {
+  color: #8190a3;
+  text-align: center;
+  padding: 18px 0 30px 0;
+  font-size: 13px;
+}
+
+@media screen and (max-width: 640px) {
+  #header h1 {
+    font-size: 24px;
+  }
+
+  .toolbar-row label {
+    display: block;
+    width: auto;
+    margin-bottom: 5px;
+  }
+
+  input, select {
+    width: 90%;
+  }
+
+  .button {
+    display: block;
+    text-align: center;
+    margin-right: 0;
+  }
+}
