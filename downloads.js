@@ -55,14 +55,5 @@ var PS3_DOWNLOADS = [
     tamanho: "Pequeno",
     url: "https://github.com/leocalmeida/downgerenciador_ps3/archive/refs/heads/main.zip",
     destino: "/dev_hdd0/packages/downgerenciador_ps3-main.zip"
-  },
-  {
-    titulo: "Teste - Arquivo",
-    descricao: "",
-    categoria: "Outros",
-    tipo: "ZIP",
-    tamanho: "",
-    url: "https://example.com/Teste%3AArquivo.zip",
-    destino: "/dev_hdd0/packages/Teste - Arquivo.zip"
   }
 ];
