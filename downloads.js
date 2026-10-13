@@ -65,5 +65,15 @@ var PS3_DOWNLOADS = [
     tamanho: "",
     url: "https://cdn.psgamedl.com/PS3-DEC/Naruto%20Shippuden%20-%20Ultimate%20Ninja%20Storm%20Generations%20(USA)%20(EnFrEs).zip?e=1791939212&s=ZlhAcwYMVv11Bo-0M02znigw-bouvbEMPVuUCnAilv8",
     destino: "/dev_hdd0/PS3ISO/Naruto Shippuden: Ultimate Ninja Storm Generations.rar"
+  },
+  {
+    titulo: "README",
+    descricao: "",
+    categoria: "Outros",
+    tipo: "MD",
+    tamanho: "",
+    url: "https://raw.githubusercontent.com/leocalmeida/downgerenciador_ps3/main/README.md",
+    destino: "/dev_hdd0/packages/README.md",
+    expiraEm: "2026-10-13T01:57:30Z"
   }
 ];
